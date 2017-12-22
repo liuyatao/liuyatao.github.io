@@ -39,7 +39,7 @@
       
         <li class="list-item">
           
-            <a href="/" class="item-link active">Home</a>
+            <a href="/" class="item-link">Home</a>
           
         </li>
       
@@ -72,7 +72,7 @@
         
           <li class="menu-item">
             
-              <a href="/" class="menu-link mobile-active">Home</a>
+              <a href="/" class="menu-link">Home</a>
             
           </li>
         
@@ -99,142 +99,58 @@
   </div>
 </header>
 
-    <main class="app-body">
+    <div id="article-banner">
+  <h2>Archives</h2>
+  <p class="post-date">文章归档</p>
+</div>
+<main class="app-body" id="archives">
   
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2017/12/21/spring-security-oauth/">spring-security-oauth</a>
-      </h2>
-      <p class="article-date">December 21, 2017</p>
-      
-        
-  <a href="/tags#OAuth 2.0" >
-    <span class="tag-code">OAuth 2.0</span>
-  </a>
-
-  <a href="/tags#Spring Security" >
-    <span class="tag-code">Spring Security</span>
-  </a>
-
-  <a href="/tags#Spring Security OAuth" >
-    <span class="tag-code">Spring Security OAuth</span>
-  </a>
-
-      
-      <div class="article-summary">
-        
-          OAuth2 简介OAuth 2.0是一种工业级的授权协议。OAuth 2.0是从创建于2006年的OAuth 1.0继承而来的。OAuth 2.0致力于帮助开发者简化授权并为web应用、桌面应用、移动应用、嵌入式应用提供具体的授权流程。
-
-OAuth 2.0 is the indu ...
-        
+  
+  
+    <section class="time-section">
+  <h1 class="section-year">
+    2017
+  </h1>
+  <div class="section-list">
+    
+    
+      <div class="section-list-item">
+        <a href="/2017/12/21/spring-security-oauth/" class="archive-title">spring-security-oauth</a>
+        <p class="archive-date">12-21</p>
       </div>
-      <a class="more" href="/2017/12/21/spring-security-oauth/">Read more</a>
-    </article>
-  
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2017/12/15/mac装盗版软件/">mac装盗版软件</a>
-      </h2>
-      <p class="article-date">December 15, 2017</p>
-      
-        
-  <a href="/tags#工具" >
-    <span class="tag-code">工具</span>
-  </a>
-
-      
-      <div class="article-summary">
-        
-          macOS默认只允许应用从App Store和认证的开发者网站下载，其他地方下载的会出现app is damaged and can’t be open.You should move it to the Trash。比如在国内网站上下载的破解版的Navicat Premium就会 ...
-        
+    
+      <div class="section-list-item">
+        <a href="/2017/12/15/mac装盗版软件/" class="archive-title">mac装盗版软件</a>
+        <p class="archive-date">12-15</p>
       </div>
-      <a class="more" href="/2017/12/15/mac装盗版软件/">Read more</a>
-    </article>
-  
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2017/12/14/haha/">haha</a>
-      </h2>
-      <p class="article-date">December 14, 2017</p>
-      
-      <div class="article-summary">
-        
-          标题
-        
+    
+      <div class="section-list-item">
+        <a href="/2017/12/14/haha/" class="archive-title">haha</a>
+        <p class="archive-date">12-14</p>
       </div>
-      <a class="more" href="/2017/12/14/haha/">Read more</a>
-    </article>
-  
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2017/12/14/test/">test</a>
-      </h2>
-      <p class="article-date">December 14, 2017</p>
-      
-        
-  <a href="/tags#test" >
-    <span class="tag-code">test</span>
-  </a>
-
-      
-      <div class="article-summary">
-        
-          1. hhhh
-这是一个引用
-
-1.1. 代码块1int a=0;
-1.2. 图片
-1.3. table
-
-
-ddd
-fff
-
-
-
-
-对对对
-对对对
-
-
-ffffff
-fffff
-
-
-对对对
-对对对
-
-
-ffffff
-fffff
-
-
-
-2. jjjj3. jjjjj
-        
+    
+      <div class="section-list-item">
+        <a href="/2017/12/14/test/" class="archive-title">test</a>
+        <p class="archive-date">12-14</p>
       </div>
-      <a class="more" href="/2017/12/14/test/">Read more</a>
-    </article>
-  
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2017/12/14/hello-world/">Hello World</a>
-      </h2>
-      <p class="article-date">December 14, 2017</p>
-      
-      <div class="article-summary">
-        
-          Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer ...
-        
+    
+      <div class="section-list-item">
+        <a href="/2017/12/14/hello-world/" class="archive-title">Hello World</a>
+        <p class="archive-date">12-14</p>
       </div>
-      <a class="more" href="/2017/12/14/hello-world/">Read more</a>
-    </article>
-  
-
+    
+  </div>
+</section>
   
 </main>
 
-
+<script>
+  (function () {
+    var url = 'http://yoursite.com/tags/Spring-Security/index.html';
+    $('#article-banner').geopattern(url);
+    $('.header').removeClass('fixed-header');
+  })();
+</script>
     <div class="scroll-top">
   <span class="arrow-icon"></span>
 </div>

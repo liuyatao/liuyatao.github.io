@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="Liu Yatao&#39;s blog">
+  <meta name="keyword" content="hexo-theme, vuejs">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      spring-security-oauth | Liu Yatao&#39;s Blog
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png" />
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <!-- <div class="logo"></div> -->
+      <span>Liu Yatao's Blog</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">Home</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">Tags</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">Archives</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">About</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">Home</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">Tags</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">Archives</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">About</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>spring-security-oauth</h2>
+  <p class="post-date">2017-12-21</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><h1 id="OAuth2-简介"><a href="#OAuth2-简介" class="headerlink" title="OAuth2 简介"></a>OAuth2 简介</h1><p><code>OAuth 2.0</code>是一种工业级的授权协议。OAuth 2.0是从创建于2006年的OAuth 1.0继承而来的。OAuth 2.0致力于帮助开发者简化授权并为web应用、桌面应用、移动应用、嵌入式应用提供具体的授权流程。</p>
+<blockquote>
+<p>OAuth 2.0 is the industry-standard protocol for authorization. OAuth 2.0 supersedes the work done on the original OAuth protocol created in 2006. OAuth 2.0 focuses on client developer simplicity while providing specific authorization flows for web applications, desktop applications, mobile phones, and living room devices. This specification is being developed within the IETF OAuth WG.</p>
+</blockquote>
+<h2 id="OAuth-2-0的四个角色"><a href="#OAuth-2-0的四个角色" class="headerlink" title="OAuth 2.0的四个角色"></a>OAuth 2.0的四个角色</h2><p>为了方便理解，已常用的<code>使用微信登录</code>为例</p>
+<ul>
+<li><p><strong>Resource Owner</strong></p>
+<p>  资源拥有者，用户，对应微信的每个用户，微信上设置的个人信息是属于每个用户的，不是腾讯的。</p>
+</li>
+<li><p><strong>Resource Server</strong></p>
+<p>  存放资源的服务器，一般就是用户数据的一些操作（增伤改查）的REST API，比如微信的获取用户基本信息的接口。</p>
+</li>
+<li><p><strong>Client Application</strong></p>
+<p>  第三方客户端，对比微信中就是各种微信公众号开发的应用，第三方应用经过<code>认证服务器</code>授权后即可访问<code>资源服务器</code>的REST API来获取用户的头像、性别、地区等基本信息。</p>
+</li>
+<li><p><strong>Authorization Server</strong></p>
+<p>  认证服务器，验证第三方客户端是否合法。如果合法就给客户端颁布token，第三方中国token来调用资源服务器的API</p>
+</li>
+</ul>
+<h2 id="四种授权方式（Grant-Type）"><a href="#四种授权方式（Grant-Type）" class="headerlink" title="四种授权方式（Grant Type）"></a>四种授权方式（Grant Type）</h2><ul>
+<li><p><strong>anthorization_code</strong> </p>
+<p>  授权码类型，适用于Web Server Application。模式为：客户端应用先获取code，然后</p>
+</li>
+<li><p><strong>implicit</strong><br>  简化类型，相对于授权码类型少了授权码获取的步骤。客户端应用授权后认证服务器会直接将token放在客户端的url。客户端解析url获取token。这种方式其实是不太安全的，可以通过https安全通道和缩短token的有效时间来较少风险。</p>
+</li>
+<li><p><strong>password</strong></p>
+<p>  密码类型，客户端应用通过用户的username和password获token。适用于资源服务器、认证服务器与客户端具有完全的信任关系，因为要将用户要将用户的用户名密码直接发送给客户端应用，客户端应用通过用户发送过来的用户名密码获取token，然后访问资源服务器资源。比如支付宝就可以直接用淘宝用户名和密码登录，因为它们属于同一家公司，彼此<strong>充分信任</strong>。</p>
+</li>
+<li><p><strong>client_credentials</strong></p>
+<p>  客户端类型，是不需要用户参与的一种方式，用于不同服务之间的对接。比如自己开发的应用程序要调用短信验证码服务商的服务，调用地图服务商的服务、调用手机消息推送服务商的服务。当需要调用服务是可以直接使用服务商给的<code>appID</code>和<code>appSecret</code>来获取token，得到token之后就可以直接调用服务。</p>
+<h2 id="其他概念"><a href="#其他概念" class="headerlink" title="其他概念"></a>其他概念</h2></li>
+<li><p><strong>scope</strong>： 访问资源服务器的哪些作用域。</p>
+</li>
+<li><strong>refresh token</strong>：当access token 过期后，可以通过refresh token重新获取access token。</li>
+</ul>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2></section>
+    <!-- Tags START -->
+    
+      <div class="tags">
+        <span>Tags:</span>
+        
+  <a href="/tags#OAuth 2.0" >
+    <span class="tag-code">OAuth 2.0</span>
+  </a>
+
+  <a href="/tags#Spring Security" >
+    <span class="tag-code">Spring Security</span>
+  </a>
+
+  <a href="/tags#Spring Security OAuth" >
+    <span class="tag-code">Spring Security OAuth</span>
+  </a>
+
+      </div>
+    
+    <!-- Tags END -->
+    <!-- 打赏 START -->
+    
+      <div class="money-like">
+        <div class="reward-btn">
+          赏
+          <span class="money-code">
+            <span class="alipay-code">
+              <div class="code-image"></div>
+              <b>使用支付宝打赏</b>
+            </span>
+            <span class="wechat-code">
+              <div class="code-image"></div>
+              <b>使用微信打赏</b>
+            </span>
+          </span>
+        </div>
+        <p class="notice">若你觉得我的文章对你有帮助，欢迎点击上方按钮对我打赏</p>
+      </div>
+    
+    <!-- 打赏 END -->
+    <!-- 二维码 START -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#OAuth2-简介"><span class="toc-nav-text"><a href="#OAuth2-&#x7B80;&#x4ECB;" class="headerlink" title="OAuth2 &#x7B80;&#x4ECB;"></a>OAuth2 &#x7B80;&#x4ECB;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#OAuth-2-0的四个角色"><span class="toc-nav-text"><a href="#OAuth-2-0&#x7684;&#x56DB;&#x4E2A;&#x89D2;&#x8272;" class="headerlink" title="OAuth 2.0&#x7684;&#x56DB;&#x4E2A;&#x89D2;&#x8272;"></a>OAuth 2.0&#x7684;&#x56DB;&#x4E2A;&#x89D2;&#x8272;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#四种授权方式（Grant-Type）"><span class="toc-nav-text"><a href="#&#x56DB;&#x79CD;&#x6388;&#x6743;&#x65B9;&#x5F0F;&#xFF08;Grant-Type&#xFF09;" class="headerlink" title="&#x56DB;&#x79CD;&#x6388;&#x6743;&#x65B9;&#x5F0F;&#xFF08;Grant Type&#xFF09;"></a>&#x56DB;&#x79CD;&#x6388;&#x6743;&#x65B9;&#x5F0F;&#xFF08;Grant Type&#xFF09;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#其他概念"><span class="toc-nav-text"><a href="#&#x5176;&#x4ED6;&#x6982;&#x5FF5;" class="headerlink" title="&#x5176;&#x4ED6;&#x6982;&#x5FF5;"></a>&#x5176;&#x4ED6;&#x6982;&#x5FF5;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#实现"><span class="toc-nav-text"><a href="#&#x5B9E;&#x73B0;" class="headerlink" title="&#x5B9E;&#x73B0;"></a>&#x5B9E;&#x73B0;</span></a></li></ol></li></ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2017/12/21/spring-security-oauth/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "liuyatao";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "spring-security-oauth",
+        owner: "liuyatao",
+        repo: "liuyatao.github.io",
+        oauth: {
+          client_id: "5e7862dc374c56896bad",
+          client_secret: "940291ee10a2e5d917e6bd4a978f7611f99a4f07"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2017 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
+    <br>
+    Theme by <a href="https://github.com/yanm1ng">yanm1ng</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>
