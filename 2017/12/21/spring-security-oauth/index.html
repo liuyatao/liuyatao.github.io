@@ -113,29 +113,29 @@
 <blockquote>
 <p>OAuth 2.0 is the industry-standard protocol for authorization. OAuth 2.0 supersedes the work done on the original OAuth protocol created in 2006. OAuth 2.0 focuses on client developer simplicity while providing specific authorization flows for web applications, desktop applications, mobile phones, and living room devices. This specification is being developed within the IETF OAuth WG.</p>
 </blockquote>
-<h2 id="OAuth-2-0的四个角色"><a href="#OAuth-2-0的四个角色" class="headerlink" title="OAuth 2.0的四个角色"></a>OAuth 2.0的四个角色</h2><p>为了方便理解，已常用的<code>使用微信登录</code>为例</p>
+<h2 id="OAuth-2-0的四个角色"><a href="#OAuth-2-0的四个角色" class="headerlink" title="OAuth 2.0的四个角色"></a>OAuth 2.0的四个角色</h2><p>为了方便理解，以常用的<code>使用微信登录</code>为例</p>
 <ul>
 <li><p><strong>Resource Owner</strong></p>
-<p>  资源拥有者，用户，对应微信的每个用户，微信上设置的个人信息是属于每个用户的，不是腾讯的。</p>
+<p>  资源拥有者，对应微信的每个用户，微信上设置的个人信息是属于每个用户的，不属于腾讯。</p>
 </li>
 <li><p><strong>Resource Server</strong></p>
-<p>  存放资源的服务器，一般就是用户数据的一些操作（增伤改查）的REST API，比如微信的获取用户基本信息的接口。</p>
+<p>  资源服务器，一般就是用户数据的一些操作（增删改查）的REST API，比如微信的获取用户基本信息的接口。</p>
 </li>
 <li><p><strong>Client Application</strong></p>
 <p>  第三方客户端，对比微信中就是各种微信公众号开发的应用，第三方应用经过<code>认证服务器</code>授权后即可访问<code>资源服务器</code>的REST API来获取用户的头像、性别、地区等基本信息。</p>
 </li>
 <li><p><strong>Authorization Server</strong></p>
-<p>  认证服务器，验证第三方客户端是否合法。如果合法就给客户端颁布token，第三方中国token来调用资源服务器的API</p>
+<p>  认证服务器，验证第三方客户端是否合法。如果合法就给客户端颁布token，第三方中国token来调用资源服务器的API。</p>
 </li>
 </ul>
 <h2 id="四种授权方式（Grant-Type）"><a href="#四种授权方式（Grant-Type）" class="headerlink" title="四种授权方式（Grant Type）"></a>四种授权方式（Grant Type）</h2><ul>
 <li><p><strong>anthorization_code</strong> </p>
-<p>  授权码类型，适用于Web Server Application。模式为：客户端应用先获取code，然后</p>
+<p>  授权码类型，适用于Web Server Application。模式为：客户端先调用<code>/oauth/authorize/</code>进到用户授权界面，用户授权后返回<code>code</code>，客户端然后根据code和<code>appSecret</code>获取<code>access token</code>。</p>
 </li>
-<li><p><strong>implicit</strong><br>  简化类型，相对于授权码类型少了授权码获取的步骤。客户端应用授权后认证服务器会直接将token放在客户端的url。客户端解析url获取token。这种方式其实是不太安全的，可以通过https安全通道和缩短token的有效时间来较少风险。</p>
+<li><p><strong>implicit</strong><br>  简化类型，相对于授权码类型少了授权码获取的步骤。客户端应用授权后认证服务器会直接将access token放在客户端的url。客户端解析url获取token。这种方式其实是不太安全的，可以通过<strong>https安全通道</strong>和<strong>缩短access token的有效时间</strong>来较少风险。</p>
 </li>
 <li><p><strong>password</strong></p>
-<p>  密码类型，客户端应用通过用户的username和password获token。适用于资源服务器、认证服务器与客户端具有完全的信任关系，因为要将用户要将用户的用户名密码直接发送给客户端应用，客户端应用通过用户发送过来的用户名密码获取token，然后访问资源服务器资源。比如支付宝就可以直接用淘宝用户名和密码登录，因为它们属于同一家公司，彼此<strong>充分信任</strong>。</p>
+<p>  密码类型，客户端应用通过用户的username和password获access token。适用于资源服务器、认证服务器与客户端具有完全的信任关系，因为要将用户要将用户的用户名密码直接发送给客户端应用，客户端应用通过用户发送过来的用户名密码获取token，然后访问资源服务器资源。比如支付宝就可以直接用淘宝用户名和密码登录，因为它们属于同一家公司，彼此<strong>充分信任</strong>。</p>
 </li>
 <li><p><strong>client_credentials</strong></p>
 <p>  客户端类型，是不需要用户参与的一种方式，用于不同服务之间的对接。比如自己开发的应用程序要调用短信验证码服务商的服务，调用地图服务商的服务、调用手机消息推送服务商的服务。当需要调用服务是可以直接使用服务商给的<code>appID</code>和<code>appSecret</code>来获取token，得到token之后就可以直接调用服务。</p>
