@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="Liu Yatao&#39;s blog">
+  <meta name="keyword" content="hexo-theme, vuejs">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      Hibernate Cache | Liu Yatao&#39;s Blog
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png" />
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <!-- <div class="logo"></div> -->
+      <span>Liu Yatao's Blog</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">Home</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">Tags</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">Archives</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">About</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">Home</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">Tags</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">Archives</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">About</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>Hibernate Cache</h2>
+  <p class="post-date">2018-01-04</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>Hibernate Cache 对于提高应用的性能是非常有用的。缓存的目标就是减少数据库的查询，从而减少应用的吞吐时间。Hibernate提供如下几种缓存类型</p>
+<ul>
+<li><p><strong>一级缓存（First Level Cache）</strong>：Hibernate一级缓存是和<code>Session</code>对象紧密关联的。Hibernate一级缓存是默认可用的，并且不能关闭它。但是Hibernate提供了可以删除指定object的方法。任何一个在一个session钟缓存的对象在其他session中是不可见的，当session关闭后所有缓存的对象也会丢失。<br><img src="/2018/01/04/Hibernate-Cache/hibernate_first_level_cache.jpg" alt="ff"></p>
+</li>
+<li><p><strong>二级缓存（Second Level Cache）</strong> 以及缓存的作用域是<code>session</code>，而二级缓存的作用域是<code>SessionFactory</code>,这就意味着缓存可以被同一个sessionfactory的不同 session 是可以同时共享缓存对象（object）的。当一个二级缓存被设定，将会发生如下：<br><img src="/2018/01/04/Hibernate-Cache/hibernate_cache.jpg" alt=""></p>
+<ul>
+<li>如果一个是你instace 已经出现在了一级缓存中，则直接返回该实例</li>
+<li>如果一个实例在以及缓存中并没有出现，但是相应的实例状态（instace state）被缓存在了二级缓存中，数据将从二级缓存中得到，对象实例将会被组装和返回。</li>
+</ul>
+</li>
+<li><p><strong>查询缓存</strong></p>
+</li>
+</ul>
+<h1 id="一级缓存"><a href="#一级缓存" class="headerlink" title="一级缓存"></a>一级缓存</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Session session = sessionFactory.openSession();</span><br><span class="line"></span><br><span class="line"><span class="comment">//第一次查询数据库</span></span><br><span class="line">session.get(Employee.class, <span class="number">1L</span>);</span><br><span class="line"></span><br><span class="line">Thread.sleep(<span class="number">2000</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//第二次不查询数据库</span></span><br><span class="line">session.get(Employee.class, <span class="number">1L</span>);</span><br><span class="line"></span><br><span class="line">session.close();</span><br></pre></td></tr></table></figure>
+<p>在同一个session中当对象的实例存在时将会直接返回实例，并不会再次执行查询数据库操作。但是hibernate提供了清除缓对象实例的方法，它们是：</p>
+<ul>
+<li>clear() : 该方法会清除session一级缓存的所有对象实例</li>
+<li>evict(Object object) ：该方法清除一级缓存的指定对象</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Session session = sessionFactory.openSession();</span><br><span class="line"></span><br><span class="line"><span class="comment">//第一次查询数据库</span></span><br><span class="line">session.get(Employee.class, <span class="number">1L</span>);</span><br><span class="line"></span><br><span class="line">Thread.sleep(<span class="number">2000</span>);</span><br><span class="line">        </span><br><span class="line"><span class="comment">//清除一级缓存</span></span><br><span class="line">session.clear();</span><br><span class="line"><span class="comment">// or session.evict(employee);</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//第二次查询数据库，因为一级缓存已经被清除</span></span><br><span class="line">session.get(Employee.class, <span class="number">1L</span>);</span><br><span class="line">session.close();</span><br></pre></td></tr></table></figure>
+<h1 id="二级缓存"><a href="#二级缓存" class="headerlink" title="二级缓存"></a>二级缓存</h1><h2 id="二级缓存的作用域是-Session-Factory"><a href="#二级缓存的作用域是-Session-Factory" class="headerlink" title="二级缓存的作用域是 Session Factory"></a>二级缓存的作用域是 Session Factory</h2><p>可以一个事务产生的二级缓存可以在两一个事务中直接访问到。现在做如下测试（设置缓存策略为只读）:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">Session session = sessionFactory.openSession();</span><br><span class="line">Session otherSession = sessionFactory.openSession();</span><br><span class="line"></span><br><span class="line">Statistics statistics = sessionFactory.getStatistics();</span><br><span class="line">statistics.setStatisticsEnabled(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> <span class="comment">//开启第一个事务</span></span><br><span class="line">Transaction transaction = session.beginTransaction();</span><br><span class="line"></span><br><span class="line"> <span class="comment">//第一次查询数据库</span></span><br><span class="line"> Employee employee= session.get(Employee.class, <span class="number">1L</span>);</span><br><span class="line"> print(<span class="string">"第一次从数据库中查询"</span>,statistics);</span><br><span class="line"></span><br><span class="line"><span class="comment">//第二次从一级缓冲中查询</span></span><br><span class="line">session.get(Employee.class, <span class="number">1L</span>);</span><br><span class="line">print(<span class="string">"第二次从一级缓冲中查询"</span>,statistics);</span><br><span class="line"></span><br><span class="line"><span class="comment">//清除一级缓存</span></span><br><span class="line">session.evict(employee);</span><br><span class="line"></span><br><span class="line">/从二级缓存中查询</span><br><span class="line">session.get(Employee.class, <span class="number">1L</span>);</span><br><span class="line">print(<span class="string">"从二级缓存中查询"</span>,statistics);</span><br><span class="line"></span><br><span class="line"><span class="comment">//提交第一个事务</span></span><br><span class="line">transaction.commit();</span><br><span class="line">session.close();</span><br><span class="line"></span><br><span class="line">        </span><br><span class="line"></span><br><span class="line"><span class="comment">//第二个事务</span></span><br><span class="line">Transaction otherTransaction = otherSession.beginTransaction();</span><br><span class="line"></span><br><span class="line">otherSession.get(Employee.class, <span class="number">1L</span>);</span><br><span class="line">print(<span class="string">"另一个事务"</span>,statistics);</span><br><span class="line"></span><br><span class="line">otherSession.get(Employee.class, <span class="number">2L</span>);</span><br><span class="line">print(<span class="string">"查询另一条记录"</span>,statistics);</span><br><span class="line"></span><br><span class="line"><span class="comment">//提交第二个事务</span></span><br><span class="line">otherTransaction.commit();</span><br><span class="line">otherSession.close();</span><br></pre></td></tr></table></figure></p>
+<p>最终结果为：</p>
+<p><img src="/2018/01/04/Hibernate-Cache/QQ20180106-174058.png" alt=""></p>
+<ul>
+<li>第一次get的时候缓存中没有，那么从数据库中读一条记录；</li>
+<li>第二次get的时候是从一级中读取（不读数据库）；</li>
+<li>当调用evict释放查出的数据后在get会从二级缓存中查（不读数据库）；</li>
+<li>当开启另一个事务再get时依旧是从二级缓存中读取（二级缓存跨事务）；</li>
+<li>当查询另一条记录时一、二级缓存中都没有，所以直接在数据库中查询。</li>
+</ul>
+<h2 id="Region-Factory"><a href="#Region-Factory" class="headerlink" title="Region Factory"></a>Region Factory</h2><p>Hibernate的二级缓存是对真实的缓存提供者（cache provider）透明的，<code>org.hibernate.cache.spi.RegionFactory</code>接口囊括了缓存提供者应该实现的各种细节，该接口其实是Hibernate和缓存提供者的一个桥梁。比较知名的缓存提供者有：</p>
+<ul>
+<li>Ehcache ： 成熟、使用范围广，本地缓存，单节点</li>
+<li>Hazelcast ：分布式、多节点</li>
+<li>Infinispan ： 分布式、多节点</li>
+<li>Hibernate Redis ： Redis实现的Hibernate二级缓存框架</li>
+</ul>
+<h2 id="Hibernate二级缓存策略"><a href="#Hibernate二级缓存策略" class="headerlink" title="Hibernate二级缓存策略"></a>Hibernate二级缓存策略</h2><ul>
+<li><strong>只读（READ_ONLY）：</strong> 当实体数据从来不会改变的时候使用（当尝试更新该实体对象时会抛出异常），该策略比较简单，适用于那些不需要改动的静态数据。</li>
+<li><p><strong>不严格读写（ONSTRICT_READ_WRITE）：</strong> 当事务提交后受影响的数据发生变化后缓存才会被更新，因此策略无法保证强一致性，存在一个短暂的窗口期，在这个期间可能从缓存中获取的数据已经是脏数据了。如果应用知识偶尔需要更新数据，并且不需要严格的事务隔离，可以考虑使用该种策略。缓存实例没有被加锁，如果两个事务同时修改数据，我们不知道我们到底拿到了什么数据，这种策略不能保证缓存中的数据和数据库中的数据一致。最好设置缓存的有效期。</p>
+</li>
+<li><p><strong>读写（READ_WRITE）:</strong> 这种策略通过加锁保持了数据的强一致性，当一个被缓存的实体数据发生变化，锁将会被添加到缓存中，直到事务被提交才释放该锁，此时当事务访问加锁的实体数据时将会直接访问数据库。</p>
+</li>
+<li><strong>事务（TRANSACTIONAL）：</strong> 这种策略应用于JTA环境中</li>
+</ul>
+<h2 id="缓存管理"><a href="#缓存管理" class="headerlink" title="缓存管理"></a>缓存管理</h2><p>如果没有设置缓存过期（expiration）和缓存释放（eviction）策略，缓存将会一致增加直到耗尽所有内存。通产情况下Hibernate将缓存管理的职责转交给缓存提供者（Cache Provider）。</p>
+<h2 id="Collection-缓存"><a href="#Collection-缓存" class="headerlink" title="Collection 缓存"></a>Collection 缓存</h2><p>默认情况下集合是不会被缓存的，只有明确地标注为可缓存，该集合对象才能被缓存。</p>
+<h2 id="缓存状态内部"><a href="#缓存状态内部" class="headerlink" title="缓存状态内部"></a>缓存状态内部</h2><p>实体并没有缓存实体的对象实例到二级缓存中，而是拆散（disassembled）的状态，返回缓存的时候需要重新组装（assembly）。</p>
+<ul>
+<li>二级缓存中没有保存ID（主键），主键被以cache key的身份保存。</li>
+<li>被@Transient修饰的属性不会被缓存</li>
+<li>集合没有被缓存</li>
+<li>没有关联关系的属性会被以他原来的形式缓存</li>
+<li>在多对一、 一对一的关联关系的只有外键会缓存</li>
+</ul>
+<p>这种设计只是反映了潜在的对应关系，这样提高了空间利用率，同时也方便关联的实体类的协调。</p>
+<h2 id="集合缓存的内部特征"><a href="#集合缓存的内部特征" class="headerlink" title="集合缓存的内部特征"></a>集合缓存的内部特征</h2><p>在一对多，多对多的集合需要现式地指出才会被缓存。其实Hibernate将每一个集合的缓存放在其他的缓存域中，域的名字由类名+集合的属性名组成，通过域的名字可以查看到缓存的数据。</p>
+<p>还有需要指出的是，只有集合各个对象的主键会被缓存，然后通过这些主键再去查找对象的其他属性，因此最好把集合中的实体类也设置成可被缓存。</p>
+<h1 id="查询缓存"><a href="#查询缓存" class="headerlink" title="查询缓存"></a>查询缓存</h1><p>可以HQL 的查询结果也缓存起来，当要经常查询很少发生变大的数据集时做查询缓存是很有用的。要启动查询缓存只要设置<code>hibernate.cache.use_query_cache</code>属性为<code>true</code>即可。</p>
+<h2 id="查询缓存的最佳实践"><a href="#查询缓存的最佳实践" class="headerlink" title="查询缓存的最佳实践"></a>查询缓存的最佳实践</h2><ul>
+<li><p>进行查询缓存的时候只有实体的主键会被缓存，所以强烈推荐使用二级缓存。</p>
+</li>
+<li><p>Hibernate会为每一个查询参数设置一个一个缓存，因此如果一个查询有很多的查询参数组合，那么这个查询不适合做查询缓存。</p>
+</li>
+<li><p>如果实体对应的数据库的数据会经常发生变动，那么该查询不适合做查询缓存，因为当数据库中的数据发生变化，缓存将会无效，不管已经发生变化的实例是否已经缓存。</p>
+</li>
+<li><p>所有的查询缓存被缓存在<code>rg.hibernate.cache.internal.StandardQueryCache</code>缓存域下。当实体或者集合将要被缓存的时候，可以根据需要自定义缓存参数。可以为每个查询缓存设置域名称，以便为不同的查询缓存提供不同的设置。</p>
+</li>
+<li><p>Hibernate在域<code>org.hibernate.cache.spi.UpdateTimestampsCache</code>保存着数据库的最后一个更新的时间戳。当在使用查询缓存的时候这个作用域非常重要，因为Hibernate通过这个来判断缓存的实体是否已经过期。在该缓存域中的属于不应该被释放或者过期处理，因为这里的缓存的数据是为了和在表中数据查询做协调的。最好为这个缓存域设置关闭自动释放和过期处理，因为它也消耗不了太多空间。</p>
+</li>
+</ul>
+</section>
+    <!-- Tags START -->
+    
+    <!-- Tags END -->
+    <!-- 打赏 START -->
+    
+      <div class="money-like">
+        <div class="reward-btn">
+          赏
+          <span class="money-code">
+            <span class="alipay-code">
+              <div class="code-image"></div>
+              <b>使用支付宝打赏</b>
+            </span>
+            <span class="wechat-code">
+              <div class="code-image"></div>
+              <b>使用微信打赏</b>
+            </span>
+          </span>
+        </div>
+        <p class="notice">若你觉得我的文章对你有帮助，欢迎点击上方按钮对我打赏</p>
+      </div>
+    
+    <!-- 打赏 END -->
+    <!-- 二维码 START -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#概述"><span class="toc-nav-text"><a href="#&#x6982;&#x8FF0;" class="headerlink" title="&#x6982;&#x8FF0;"></a>&#x6982;&#x8FF0;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#一级缓存"><span class="toc-nav-text"><a href="#&#x4E00;&#x7EA7;&#x7F13;&#x5B58;" class="headerlink" title="&#x4E00;&#x7EA7;&#x7F13;&#x5B58;"></a>&#x4E00;&#x7EA7;&#x7F13;&#x5B58;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#二级缓存"><span class="toc-nav-text"><a href="#&#x4E8C;&#x7EA7;&#x7F13;&#x5B58;" class="headerlink" title="&#x4E8C;&#x7EA7;&#x7F13;&#x5B58;"></a>&#x4E8C;&#x7EA7;&#x7F13;&#x5B58;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#二级缓存的作用域是-Session-Factory"><span class="toc-nav-text"><a href="#&#x4E8C;&#x7EA7;&#x7F13;&#x5B58;&#x7684;&#x4F5C;&#x7528;&#x57DF;&#x662F;-Session-Factory" class="headerlink" title="&#x4E8C;&#x7EA7;&#x7F13;&#x5B58;&#x7684;&#x4F5C;&#x7528;&#x57DF;&#x662F; Session Factory"></a>&#x4E8C;&#x7EA7;&#x7F13;&#x5B58;&#x7684;&#x4F5C;&#x7528;&#x57DF;&#x662F; Session Factory</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Region-Factory"><span class="toc-nav-text"><a href="#Region-Factory" class="headerlink" title="Region Factory"></a>Region Factory</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Hibernate二级缓存策略"><span class="toc-nav-text"><a href="#Hibernate&#x4E8C;&#x7EA7;&#x7F13;&#x5B58;&#x7B56;&#x7565;" class="headerlink" title="Hibernate&#x4E8C;&#x7EA7;&#x7F13;&#x5B58;&#x7B56;&#x7565;"></a>Hibernate&#x4E8C;&#x7EA7;&#x7F13;&#x5B58;&#x7B56;&#x7565;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#缓存管理"><span class="toc-nav-text"><a href="#&#x7F13;&#x5B58;&#x7BA1;&#x7406;" class="headerlink" title="&#x7F13;&#x5B58;&#x7BA1;&#x7406;"></a>&#x7F13;&#x5B58;&#x7BA1;&#x7406;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Collection-缓存"><span class="toc-nav-text"><a href="#Collection-&#x7F13;&#x5B58;" class="headerlink" title="Collection &#x7F13;&#x5B58;"></a>Collection &#x7F13;&#x5B58;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#缓存状态内部"><span class="toc-nav-text"><a href="#&#x7F13;&#x5B58;&#x72B6;&#x6001;&#x5185;&#x90E8;" class="headerlink" title="&#x7F13;&#x5B58;&#x72B6;&#x6001;&#x5185;&#x90E8;"></a>&#x7F13;&#x5B58;&#x72B6;&#x6001;&#x5185;&#x90E8;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#集合缓存的内部特征"><span class="toc-nav-text"><a href="#&#x96C6;&#x5408;&#x7F13;&#x5B58;&#x7684;&#x5185;&#x90E8;&#x7279;&#x5F81;" class="headerlink" title="&#x96C6;&#x5408;&#x7F13;&#x5B58;&#x7684;&#x5185;&#x90E8;&#x7279;&#x5F81;"></a>&#x96C6;&#x5408;&#x7F13;&#x5B58;&#x7684;&#x5185;&#x90E8;&#x7279;&#x5F81;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#查询缓存"><span class="toc-nav-text"><a href="#&#x67E5;&#x8BE2;&#x7F13;&#x5B58;" class="headerlink" title="&#x67E5;&#x8BE2;&#x7F13;&#x5B58;"></a>&#x67E5;&#x8BE2;&#x7F13;&#x5B58;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#查询缓存的最佳实践"><span class="toc-nav-text"><a href="#&#x67E5;&#x8BE2;&#x7F13;&#x5B58;&#x7684;&#x6700;&#x4F73;&#x5B9E;&#x8DF5;" class="headerlink" title="&#x67E5;&#x8BE2;&#x7F13;&#x5B58;&#x7684;&#x6700;&#x4F73;&#x5B9E;&#x8DF5;"></a>&#x67E5;&#x8BE2;&#x7F13;&#x5B58;&#x7684;&#x6700;&#x4F73;&#x5B9E;&#x8DF5;</span></a></li></ol></li></ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2018/01/04/Hibernate-Cache/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "liuyatao";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "Hibernate Cache",
+        owner: "liuyatao",
+        repo: "liuyatao.github.io",
+        oauth: {
+          client_id: "5e7862dc374c56896bad",
+          client_secret: "940291ee10a2e5d917e6bd4a978f7611f99a4f07"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2018 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
+    <br>
+    Theme by <a href="https://github.com/yanm1ng">yanm1ng</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>

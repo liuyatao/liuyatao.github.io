@@ -10,7 +10,7 @@
   
   <title>
     
-      mac装盗版软件 | Liu Yatao&#39;s Blog
+      注册登录流程 | Liu Yatao&#39;s Blog
     
   </title>
   <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -100,8 +100,8 @@
 </header>
 
     <div id="article-banner">
-  <h2>mac装盗版软件</h2>
-  <p class="post-date">2017-12-15</p>
+  <h2>注册登录流程</h2>
+  <p class="post-date">2017-12-22</p>
   <div class="arrow-down">
     <a href="javascript:;"></a>
   </div>
@@ -109,23 +109,20 @@
 <main class="app-body flex-box">
   <!-- Article START -->
   <article class="post-article">
-    <section class="markdown-content"><p>macOS默认只允许应用从App Store和认证的开发者网站下载，其他地方下载的会出现app is damaged and can’t be open.You should move it to the Trash。比如在国内网站上下载的破解版的Navicat Premium就会出现如下图所示警告。</p>
-<p><img src="/2017/12/15/mac装盗版软件/QQ20171215-161648.png" alt="错误信息"></p>
-<p>解决方法是在命令行中输入:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo spctl --master-disable</span><br></pre></td></tr></table></figure>
-<p>然后在<code>Security&amp;Privacy</code>中的<code>Allow apps download from</code>就会出现<code>Anywhere</code>选项，打开已经安装的Navicat Premium 就会出现下图所示警告，点击<code>Open</code>就可以运行了，</p>
-<p><img src="/2017/12/15/mac装盗版软件/QQ20171215-163012.png" alt="错误信息"></p>
-<blockquote>
-<p>如果在经济许可情况下尽量使用正版软件，盗版软中也可能包含未知病毒，使用请三思。</p>
-</blockquote>
+    <section class="markdown-content"><p>登录和注册是每个系统软件的都不可或缺的功能。设计上要保证用户账号的安全、可找回、方便易用。</p>
+<p>最简单的软件登录就是<code>用户名</code>+<code>密码</code>的模式，用户输入的信息校验成功后进入系统。但是用户名+密码的方式太容易导致登录失败了，如果用户名或者密码输入忘记其中一个，那么就不能登录系统。如果只是忘记密码（用户名可以确定），那么可以通过人工客服再后台重置密码即可，但是如果用户名也已经忘记那么则账号基本作废。</p>
+<p>如果使用邮箱来进行系统注册，那么当用户忘记密码的时候可以通过邮件的方式找回具体流程如下：</p>
+<p>如果使用微信登录、QQ登录、微博登录这种方式登录的话，那么完全不用用户如输入如何东西，只需要用户点击授权登录就可以直接登录了，不用输入用户名、邮箱、密码等信息，那么就不会出现密码遗忘等问题。但是有两个问题需要考虑：第一，如果微信、QQ、微博停止运行了，那么你将不能的登录系统；第二，如果微信、QQ、微账号账号被盗，那么盗号者就可以通过你的应用直接登录其他网站。所需选择使用什么登录的时候要考虑到以上两个风险。</p>
+<p>现在比较方便的登录方式还有手机号码+手机短信验证码登录。但是手机号码+手机短信验证码登录方式完全依赖于手机号码，如果用户的手机号码换号了，那么该用户将不能再登录系统，如果后来使用该手机的用户使用手机号码+手机短信验证码的方式登录的那就可以直接看到上一任使用该手机号码的用户的信息。所以这种方式最大的风险是变更手机号码。</p>
+<p>经过上面比较使用第三方登录最为方便。如果网站服务商为了使用手机号码登录可以方便</p>
 </section>
     <!-- Tags START -->
     
       <div class="tags">
         <span>Tags:</span>
         
-  <a href="/tags#工具" >
-    <span class="tag-code">工具</span>
+  <a href="/tags#设计" >
+    <span class="tag-code">设计</span>
   </a>
 
       </div>
@@ -182,7 +179,7 @@
 
 <script>
   (function () {
-    var url = 'http://yoursite.com/2017/12/15/mac装盗版软件/';
+    var url = 'http://yoursite.com/2017/12/22/注册登录流程/';
     var banner = ''
     if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
       $('#article-banner').css({
@@ -238,7 +235,7 @@
     var gitmentConfig = "liuyatao";
     if (gitmentConfig !== 'undefined') {
       var gitment = new Gitment({
-        id: "mac装盗版软件",
+        id: "注册登录流程",
         owner: "liuyatao",
         repo: "liuyatao.github.io",
         oauth: {

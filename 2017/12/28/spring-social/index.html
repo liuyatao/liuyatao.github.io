@@ -10,7 +10,7 @@
   
   <title>
     
-      mac装盗版软件 | Liu Yatao&#39;s Blog
+      spring-social | Liu Yatao&#39;s Blog
     
   </title>
   <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -100,8 +100,8 @@
 </header>
 
     <div id="article-banner">
-  <h2>mac装盗版软件</h2>
-  <p class="post-date">2017-12-15</p>
+  <h2>spring-social</h2>
+  <p class="post-date">2017-12-28</p>
   <div class="arrow-down">
     <a href="javascript:;"></a>
   </div>
@@ -109,23 +109,21 @@
 <main class="app-body flex-box">
   <!-- Article START -->
   <article class="post-article">
-    <section class="markdown-content"><p>macOS默认只允许应用从App Store和认证的开发者网站下载，其他地方下载的会出现app is damaged and can’t be open.You should move it to the Trash。比如在国内网站上下载的破解版的Navicat Premium就会出现如下图所示警告。</p>
-<p><img src="/2017/12/15/mac装盗版软件/QQ20171215-161648.png" alt="错误信息"></p>
-<p>解决方法是在命令行中输入:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo spctl --master-disable</span><br></pre></td></tr></table></figure>
-<p>然后在<code>Security&amp;Privacy</code>中的<code>Allow apps download from</code>就会出现<code>Anywhere</code>选项，打开已经安装的Navicat Premium 就会出现下图所示警告，点击<code>Open</code>就可以运行了，</p>
-<p><img src="/2017/12/15/mac装盗版软件/QQ20171215-163012.png" alt="错误信息"></p>
-<blockquote>
-<p>如果在经济许可情况下尽量使用正版软件，盗版软中也可能包含未知病毒，使用请三思。</p>
-</blockquote>
+    <section class="markdown-content"><ol>
+<li>使用<code>Service Provider Accounts</code>登录</li>
+</ol>
+<p>为了方便用户注册，很多应用允许使用像Twitter 或者 Facebook这样的service provider登录。 </p>
+<p>Spring Social 支持如下两种基于provider的认证</p>
+<p>providerSignInController is a Spring MVC controller that performs a similar flow as connectConntroller except that it ultimately results in an authentication instead of a new connect.</p>
+<p>SocialAuthenticationFilter is a Spring Security filter that plugs into Spring Security’s filter chain for provider sign in.</p>
 </section>
     <!-- Tags START -->
     
       <div class="tags">
         <span>Tags:</span>
         
-  <a href="/tags#工具" >
-    <span class="tag-code">工具</span>
+  <a href="/tags#Spring Social" >
+    <span class="tag-code">Spring Social</span>
   </a>
 
       </div>
@@ -182,7 +180,7 @@
 
 <script>
   (function () {
-    var url = 'http://yoursite.com/2017/12/15/mac装盗版软件/';
+    var url = 'http://yoursite.com/2017/12/28/spring-social/';
     var banner = ''
     if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
       $('#article-banner').css({
@@ -238,7 +236,7 @@
     var gitmentConfig = "liuyatao";
     if (gitmentConfig !== 'undefined') {
       var gitment = new Gitment({
-        id: "mac装盗版软件",
+        id: "spring-social",
         owner: "liuyatao",
         repo: "liuyatao.github.io",
         oauth: {
