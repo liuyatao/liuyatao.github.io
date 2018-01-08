@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="Liu Yatao&#39;s blog">
+  <meta name="keyword" content="hexo-theme, vuejs">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      Java 8 Lambda Expressions | Liu Yatao&#39;s Blog
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png" />
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <!-- <div class="logo"></div> -->
+      <span>Liu Yatao's Blog</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">Home</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">Tags</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">Archives</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">About</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">Home</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">Tags</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">Archives</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">About</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>Java 8 Lambda Expressions</h2>
+  <p class="post-date">2018-01-07</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><p>匿名内部类的一个问题是：当一个匿名内部类的实现非常简单，比如说接口只包含一个函数，那么匿名内部类的语法有点笨拙且不清晰。在这种情况下，我们经常会是传递一个函数作为参数给另一个函数，比如当点击一个按钮的响应事件。Lambda表达式可以通过把函数当做函数的参数，代码（函数）当做数据（参数引用）的特性能够实现这一点。</p>
+<p>Lambda表达式可以让只有一个方法的类更灵活。</p>
+<h1 id="Lambda表达式的一个用例"><a href="#Lambda表达式的一个用例" class="headerlink" title="Lambda表达式的一个用例"></a>Lambda表达式的一个用例</h1><p>假设你正在创建一个社交网络应用。你先要开发一个功能可以让管理员做各种操作，比如给一写符合特定标准的用户发送消息。</p>
+<p>假设社交网络应用的成员都通过<code>Person</code>类表示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">enum</span> Sex &#123;</span><br><span class="line">        MALE, FEMALE</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    String name;</span><br><span class="line">    LocalDate birthday;</span><br><span class="line">    Sex gender;</span><br><span class="line">    String emailAddress;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">printPerson</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>假设社交网络应用的所有用户都保存在一个 <code>List&lt;Person&gt;</code>的实例中。</p>
+<p>我们先使用一个简单的方法来实现这个用例。再通过使用本地（local）类、匿名内部（inner）类，最终通过Labda表达式实现一个高效且简洁的方案。</p>
+<h2 id="方法1：创建一个搜索用户某一特性的方法"><a href="#方法1：创建一个搜索用户某一特性的方法" class="headerlink" title="方法1：创建一个搜索用户某一特性的方法"></a>方法1：创建一个搜索用户某一特性的方法</h2><p>一个简单的当时是创建几个函数，每个函数搜索搜索一个指定的用户特征，比如搜索性别、年龄。下面的方便打印了年龄大于一个特定值的所有用户：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printPersonsOlderThan</span><span class="params">(List&lt;Person&gt; roster, <span class="keyword">int</span> age)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (Person p : roster) &#123;</span><br><span class="line">        <span class="keyword">if</span> (p.getAge() &gt;= age) &#123;</span><br><span class="line">            p.printPerson();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法是有潜在的问题的，如果引入一些变动（比如新的数据类型）这个程序会出错。假设更新了应用比呢节变化了<code>Person</code>类的</p>
+<h2 id="方法2：创建一个更加通用的搜索方法"><a href="#方法2：创建一个更加通用的搜索方法" class="headerlink" title="方法2：创建一个更加通用的搜索方法"></a>方法2：创建一个更加通用的搜索方法</h2><p>这个方法比起<code>printPersonsOlderThan</code>更加通用;它提供了可以打印某个年龄区间的用户：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printPersonsWithinAgeRange</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    List&lt;Person&gt; roster, <span class="keyword">int</span> low, <span class="keyword">int</span> high)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (Person p : roster) &#123;</span><br><span class="line">        <span class="keyword">if</span> (low &lt;= p.getAge() &amp;&amp; p.getAge() &lt; high) &#123;</span><br><span class="line">            p.printPerson();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果想打印特定的性别或者打印同时满足特定性别和某年龄区间的用户呢？如果要改动Person类，添加其他属性，比如恋爱状态、地理位置呢？尽管这个方法比<code>printPersonsOlderThan</code>方法更加通用，但是每个查询都创建特定的函数都是有可以导致程序不够健壮。你可以使用接口将特定的搜索转交给需要搜索的类中。</p>
+<h2 id="方法3：在本地类中设定特定的查询标准"><a href="#方法3：在本地类中设定特定的查询标准" class="headerlink" title="方法3：在本地类中设定特定的查询标准"></a>方法3：在本地类中设定特定的查询标准</h2><p>下面方法可以打印与你提供的搜索标准相匹配的用户</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printPersons</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    List&lt;Person&gt; roster, CheckPerson tester)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (Person p : roster) &#123;</span><br><span class="line">        <span class="keyword">if</span> (tester.test(p)) &#123;</span><br><span class="line">            p.printPerson();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>This method checks each Person instance contained in the List parameter roster whether it satisfies the search criteria specified in the CheckPerson parameter tester by invoking the method tester.test. If the method tester.test returns a true value, then the method printPersons is invoked on the Person instance.</p>
+<p>这个方法检测每个roster列表中的元素是否瞒住，</p>
+</section>
+    <!-- Tags START -->
+    
+      <div class="tags">
+        <span>Tags:</span>
+        
+  <a href="/tags#Java 8" >
+    <span class="tag-code">Java 8</span>
+  </a>
+
+      </div>
+    
+    <!-- Tags END -->
+    <!-- 打赏 START -->
+    
+      <div class="money-like">
+        <div class="reward-btn">
+          赏
+          <span class="money-code">
+            <span class="alipay-code">
+              <div class="code-image"></div>
+              <b>使用支付宝打赏</b>
+            </span>
+            <span class="wechat-code">
+              <div class="code-image"></div>
+              <b>使用微信打赏</b>
+            </span>
+          </span>
+        </div>
+        <p class="notice">若你觉得我的文章对你有帮助，欢迎点击上方按钮对我打赏</p>
+      </div>
+    
+    <!-- 打赏 END -->
+    <!-- 二维码 START -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#Lambda表达式的一个用例"><span class="toc-nav-text"><a href="#Lambda&#x8868;&#x8FBE;&#x5F0F;&#x7684;&#x4E00;&#x4E2A;&#x7528;&#x4F8B;" class="headerlink" title="Lambda&#x8868;&#x8FBE;&#x5F0F;&#x7684;&#x4E00;&#x4E2A;&#x7528;&#x4F8B;"></a>Lambda&#x8868;&#x8FBE;&#x5F0F;&#x7684;&#x4E00;&#x4E2A;&#x7528;&#x4F8B;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#方法1：创建一个搜索用户某一特性的方法"><span class="toc-nav-text"><a href="#&#x65B9;&#x6CD5;1&#xFF1A;&#x521B;&#x5EFA;&#x4E00;&#x4E2A;&#x641C;&#x7D22;&#x7528;&#x6237;&#x67D0;&#x4E00;&#x7279;&#x6027;&#x7684;&#x65B9;&#x6CD5;" class="headerlink" title="&#x65B9;&#x6CD5;1&#xFF1A;&#x521B;&#x5EFA;&#x4E00;&#x4E2A;&#x641C;&#x7D22;&#x7528;&#x6237;&#x67D0;&#x4E00;&#x7279;&#x6027;&#x7684;&#x65B9;&#x6CD5;"></a>&#x65B9;&#x6CD5;1&#xFF1A;&#x521B;&#x5EFA;&#x4E00;&#x4E2A;&#x641C;&#x7D22;&#x7528;&#x6237;&#x67D0;&#x4E00;&#x7279;&#x6027;&#x7684;&#x65B9;&#x6CD5;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#方法2：创建一个更加通用的搜索方法"><span class="toc-nav-text"><a href="#&#x65B9;&#x6CD5;2&#xFF1A;&#x521B;&#x5EFA;&#x4E00;&#x4E2A;&#x66F4;&#x52A0;&#x901A;&#x7528;&#x7684;&#x641C;&#x7D22;&#x65B9;&#x6CD5;" class="headerlink" title="&#x65B9;&#x6CD5;2&#xFF1A;&#x521B;&#x5EFA;&#x4E00;&#x4E2A;&#x66F4;&#x52A0;&#x901A;&#x7528;&#x7684;&#x641C;&#x7D22;&#x65B9;&#x6CD5;"></a>&#x65B9;&#x6CD5;2&#xFF1A;&#x521B;&#x5EFA;&#x4E00;&#x4E2A;&#x66F4;&#x52A0;&#x901A;&#x7528;&#x7684;&#x641C;&#x7D22;&#x65B9;&#x6CD5;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#方法3：在本地类中设定特定的查询标准"><span class="toc-nav-text"><a href="#&#x65B9;&#x6CD5;3&#xFF1A;&#x5728;&#x672C;&#x5730;&#x7C7B;&#x4E2D;&#x8BBE;&#x5B9A;&#x7279;&#x5B9A;&#x7684;&#x67E5;&#x8BE2;&#x6807;&#x51C6;" class="headerlink" title="&#x65B9;&#x6CD5;3&#xFF1A;&#x5728;&#x672C;&#x5730;&#x7C7B;&#x4E2D;&#x8BBE;&#x5B9A;&#x7279;&#x5B9A;&#x7684;&#x67E5;&#x8BE2;&#x6807;&#x51C6;"></a>&#x65B9;&#x6CD5;3&#xFF1A;&#x5728;&#x672C;&#x5730;&#x7C7B;&#x4E2D;&#x8BBE;&#x5B9A;&#x7279;&#x5B9A;&#x7684;&#x67E5;&#x8BE2;&#x6807;&#x51C6;</span></a></li></ol></li></ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2018/01/07/Lambda-Expressions/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "liuyatao";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "Java 8 Lambda Expressions",
+        owner: "liuyatao",
+        repo: "liuyatao.github.io",
+        oauth: {
+          client_id: "5e7862dc374c56896bad",
+          client_secret: "940291ee10a2e5d917e6bd4a978f7611f99a4f07"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2018 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
+    <br>
+    Theme by <a href="https://github.com/yanm1ng">yanm1ng</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>
