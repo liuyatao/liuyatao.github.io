@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="Liu Yatao&#39;s blog">
+  <meta name="keyword" content="hexo-theme, vuejs">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      java8-stream-1 | Liu Yatao&#39;s Blog
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png" />
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <!-- <div class="logo"></div> -->
+      <span>Liu Yatao's Blog</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">Home</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">Tags</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">Archives</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">About</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">Home</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">Tags</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">Archives</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">About</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>java8-stream-1</h2>
+  <p class="post-date">2018-01-14</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><p>几乎每个Java应用都要创建和处理集合。集合对于很多编程任务来说是一个很基本的需求。举个例子，在银行交易系统中你你需要创建一个集合和存储用户的交易请求，然后你<strong>需要遍历整个集合</strong>才能找到这个客户这段时间总共花费了多少金额。尽管集合非常重要，但是在java中对集合的操作并不完美。</p>
+<p>首先，对一个集合处理的模式应该像处理SQL语言操作一样可以进行比如查询（一行交易中最大的一笔）、分组（用于消费日常用品总金额）这样的操作。大多数据库也是可以有明确的相关操作指令，比如”SELECT id, MAX(value) from transactions”SQL查询语句可以让你找到所有交易中最大的一笔交易和其ID。</p>
+<p>正如你所看到的，我们不需要去实现<strong>怎样</strong>计算最大值（比如循环和变量跟踪得到最大值）。我们只需要表达我们<strong>期待</strong>什么。大概意思是说你要少如何怎样显式地实现这些查询。那么为什么我们不能相似的方式来设计实现集合呢？你使用循环语句一遍又一遍遍历你的集合多少次了？</p>
+<p>其次，我们应该怎么有效处理很大数据的集合呢？要加速处理的理想方式是采用多核架构CPU，但是编写并行代码很难而且会出错。</p>
+<p>Java 8 将能够完美解决这这个问题！ <code>Stream</code>的设计可以让你通过陈述式的方式来处理数据。stream还能让你不写多线程代码也是可以使用多核架构。听起来很棒不是吗？这将是这系列文章将要探索的主要内容。</p>
+<p>在我们探索我们怎么样使用stream之前，我们先看一个使用Java 8 stream的新的编程模式。我们需要找出所有银行交易中类型是<code>grocery</code>的，并且已交易金额的降序的方式返回交易ID。在Java 7中我们需要这样实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Transaction&gt; groceryTransactions = <span class="keyword">new</span> Arraylist&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span>(Transaction t: transactions)&#123;</span><br><span class="line">  <span class="keyword">if</span>(t.getType() == Transaction.GROCERY)&#123;</span><br><span class="line">    groceryTransactions.add(t);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">Collections.sort(groceryTransactions, <span class="keyword">new</span> Comparator()&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Transaction t1, Transaction t2)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> t2.getValue().compareTo(t1.getValue());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line">List&lt;Integer&gt; transactionIds = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span>(Transaction t: groceryTransactions)&#123;</span><br><span class="line">  transactionsIds.add(t.getId());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Java 8中这样就可以实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; transactionsIds =</span><br><span class="line">    transactions.stream()</span><br><span class="line">                .filter(t -&gt; t.getType() == Transaction.GROCERY)</span><br><span class="line">                .sorted(comparing(Transaction::getValue).reversed())</span><br><span class="line">                .map(Transaction::getId)</span><br><span class="line">                .collect(toList());</span><br></pre></td></tr></table></figure>
+<p>下图展示了Java 8的实现代码，首先，我们使用stream()函数从一个交易明细列表中获取一个stream对象。接下来是一些操作（filter,sorted，map，collect）连接在一起形成了一个管道，管道可以被看做是类似数据库查询数据的一种方式。</p>
+<p><img src="/2018/01/14/java8-stream-1/2179048.jpg" alt=""></p>
+<p>那么怎么处理并行代码呢？在Java8中非常简单：只需要使用parallelStream()取代stream()就可以了，如下面所示，Stream API将在内部将你的查询条件分解应用到多核上。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; transactionsIds =</span><br><span class="line">    transactions.parallelStream()</span><br><span class="line">                .filter(t -&gt; t.getType() == Transaction.GROCERY)</span><br><span class="line">                .sorted(comparing(Transaction::getValue).reversed())</span><br><span class="line">                .map(Transaction::getId)</span><br><span class="line">                .collect(toList());</span><br></pre></td></tr></table></figure>
+<p>你可以把stream看做是一种对集合数据提高效能、提供像SQL操作一样的抽象概念，这个像SQL一样的操作可以使用lambda表达式表示。</p>
+<p>在这一系列关于Java 8 stream文章的结尾，你将会使用Stream API写类似于上述代码来实现强大的查询功能。</p>
+<h1 id="开始使用Stream"><a href="#开始使用Stream" class="headerlink" title="开始使用Stream"></a>开始使用Stream</h1><p>我们先以一些理论作为开始。stream的定义是什么？一个简单的定义是：”对一个源中的一系列元素进行聚合操作。”把概念拆分一下：</p>
+<ul>
+<li><p>一系列元素：stream对一组有特定类型的元素提供了一个接口。但是stream并不真实保存元素，元素根据需求被计算出结果。</p>
+</li>
+<li><p>源：Stream可以处理任何一种数据提供源，比如结合、数组，或者I/O资源。</p>
+</li>
+<li><p>聚合操作：Stream支持类似SQL一样的操作，常规的操作都是函数式编程语言，比如filter，map，reduce，find，match，sorted，等等。</p>
+</li>
+</ul>
+<p>stream操作还具备两个基本特性使它与集合操作不同：</p>
+<ul>
+<li>管道：许多stream操作会返回一个stream本身。这就允许所有操作可以链接起来形成一个更大的管道。这就就可以进行特定的优化了，比如懒加载和短回路，我们将在下面介绍。</li>
+</ul>
+<ul>
+<li>内部迭代：和集合的显式迭代（外部迭代）相比，stream操作不需要我们手动进行迭代。</li>
+</ul>
+<p>让我们再次看一下之前的代码。下图表示了更多细节。</p>
+<p><img src="/2018/01/14/java8-stream-1/2179051.jpg" alt="图二" title="图2"></p>
+<p>我们首先通过stream()函数从一个交易列表中获取一个stream对象。这个数据源是一个交易的列表，将会为stream提供一系列元素。接下来，我们对stream对象应用一些列的聚合操：filter（通过给定一个谓词来过滤元素），排序（通过给定一个比较器实现排序），和map(用于提取信息)。除了collect其他操作都会返回要给stream，这样就可以形成一个管道将它们连接起来，我们可以把这个链看做是一个对源的查询条件。</p>
+<p>在collect被调用之前其实什么实质性的东西都都没有被调用。collect被调用后将会开始处理管道，最终返回结果（结果是一个list）。</p>
+<p>在我们探讨stream的各种操作前，我们还是看一个stream和collection的概念层面的不同之处吧。</p>
+<h1 id="Stream-VS-集合"><a href="#Stream-VS-集合" class="headerlink" title="Stream VS  集合"></a>Stream VS  集合</h1><p>集合stream都对一些列元素提供了一些接口。那么有什么不同呢？简单点说，collection是和数据相关的，stream是和计算相关的。</p>
+<p>想一下存在DVD中的电影，这是一个collection（可能是bytes，或者是帧——不必太关注细节），因为他包含了所有的数据结构。现在想一下网络上的电影，它是一种流（byte或者帧）。流媒体播放器只需要在用户观看前先下载一些帧就可以观看了，不必全都下载下来。</p>
+<p>简单点说，collection和stream，collection是一个内存中的数据结构，collection包括数据结构中的所有值——每个collection中的元素在它被添加到集合中之前已经被计算出来了。相反，stream是一种当需要的时候才会被计算的数据结构。</p>
+<p>使用Collection接口需要用户做迭代（比如，使用foreach），这种方式叫外部迭代。相反，stream使用的是内部迭代——它会自己为你做好迭代，并且帮助做好排序。你只需要提供一个函数说明你想要干什么。下面代码使用collection做外部迭代：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; transactionIds = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span>(Transaction t: transactions)&#123;</span><br><span class="line">    transactionIds.add(t.getId());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面代码使用stream做内部迭代</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; transactionIds =</span><br><span class="line">    transactions.stream()</span><br><span class="line">                .map(Transaction::getId)</span><br><span class="line">                .collect(toList());</span><br></pre></td></tr></table></figure>
+<h1 id="使用Stream处理数据"><a href="#使用Stream处理数据" class="headerlink" title="使用Stream处理数据"></a>使用Stream处理数据</h1><p>Stream 接口定义了许多操作，可以被分为两类。</p>
+<ul>
+<li><p>filter，sorted，和map，这些可以连接起来形成一个管道的操作</p>
+</li>
+<li><p>collect，可以关闭管道返回结果的操作</p>
+</li>
+</ul>
+<p>可以被连接起来的操作叫做中间操作。你可以把他们连接起来，因为他们返回都类型都是Stream。关闭管道的操作叫做终结操作。他们可以从管道中产生一个结果，比如一个List,一个Integer，甚至一个void。</p>
+<p><strong>中间操作其实不执行任何处理直到一个终结操作被调用</strong>；他们很“懒”。因为终结操作通常可以被合并,并且被终结操作一次性执行。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; numbers = Arrays.asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>);</span><br><span class="line">List&lt;Integer&gt; twoEvenSquares = </span><br><span class="line">    numbers.stream()</span><br><span class="line">           .filter(n -&gt; &#123;</span><br><span class="line">                    System.out.println(<span class="string">"filtering "</span> + n); </span><br><span class="line">                    <span class="keyword">return</span> n % <span class="number">2</span> == <span class="number">0</span>;</span><br><span class="line">                  &#125;)</span><br><span class="line">           .map(n -&gt; &#123;</span><br><span class="line">                    System.out.println(<span class="string">"mapping "</span> + n);</span><br><span class="line">                    <span class="keyword">return</span> n * n;</span><br><span class="line">                  &#125;)</span><br><span class="line">           .limit(<span class="number">2</span>)</span><br><span class="line">           .collect(toList());</span><br></pre></td></tr></table></figure>
+<p>上面的代码会计算集合中的前两个偶数，执行结果如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">filtering <span class="number">1</span></span><br><span class="line">filtering <span class="number">2</span></span><br><span class="line">mapping <span class="number">2</span></span><br><span class="line">filtering <span class="number">3</span></span><br><span class="line">filtering <span class="number">4</span></span><br><span class="line">mapping <span class="number">4</span></span><br></pre></td></tr></table></figure>
+<p>这是因为limit(2)使用了短回路；我们只需要处理stream的一部分，然后并返回结果。这就像要计算一个很大的Boollean表达式：只要一个表达式返回false，我们就可以断定这个表达式将会返回false而不需要计算所有。这里limit操作返回一个大小为2的stream。还有就是filter操作和map操作合并起来一起传给给了stream。</p>
+<p>总结一下我们现已经已经学到的东西：stream的操作包括如下三个东西：</p>
+<ul>
+<li>一个需要进行数据查询的数据源（比如一个collection）</li>
+<li>一连串组成管道的中间操作</li>
+<li>一个执行管道并产生结果的终止操作</li>
+</ul>
+<p>stream提供的操作：</p>
+<ul>
+<li><p><strong>过滤</strong>:有如下几种可以过滤操作</p>
+<ul>
+<li>filter(Predicate)</li>
+<li>distinct</li>
+<li>limit(n): </li>
+<li>skip(n): </li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><strong>查找和匹配</strong>：一个通常的数据处理模式是判断一些元素是否满足给定的属性。可以使用 anyMatch, allMatch, 和 noneMatch 操作来帮助你实现。他们都需要一个predicate作为参数，并且返回一个boolean作为作为结果（因此他们是终结操作）。比如，你可以使用allMatch来检车在stream中的所有元素是否有一个值大于100，像下面代码中表示的那样。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">boolean</span> expensive =</span><br><span class="line">    transactions.stream()</span><br><span class="line">                .allMatch(t -&gt; t.getValue() &gt; <span class="number">100</span>);</span><br></pre></td></tr></table></figure>
+<p>另外，stream解救提供了findFirst和findAny从stream中获取任意元素。它们可以和stream的其他操作连接在一起，比如filter。findFirst和findAny都返回一个Optional对象，如清单8中所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">Optional&lt;Transaction&gt; = </span><br><span class="line">    transactions.stream()</span><br><span class="line">                .filter(t -&gt; t.getType() == Transaction.GROCERY)</span><br><span class="line">                .findAny();</span><br></pre></td></tr></table></figure>
+<p>Optional<t> 类可以存放一个存在或者不存在的值。在下面代码中，findAny可能没有返回一个交易类型是grocery类的信息。Optional存在好多方法检测元素是否存在。比如，如果一个交易信息存在，我们可以使用相关函数处理optional对象。</t></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">transactions.stream()</span><br><span class="line">             .filter(t -&gt; t.getType() == Transaction.GROCERY)</span><br><span class="line">             .findAny()</span><br><span class="line">             .ifPresent(System.out::println);</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>映射</strong>：stream支持map方法，map使用一个函数作为一个参数</li>
+</ul>
+<p>比如，你可能想使用map从stream的一个元素中提取信息。在下面 的例子中，我们返回列表中每个单词的长度。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; words = Arrays.asList(<span class="string">"Oracle"</span>, <span class="string">"Java"</span>, <span class="string">"Magazine"</span>);</span><br><span class="line"> List&lt;Integer&gt; wordLengths = </span><br><span class="line">    words.stream()</span><br><span class="line">         .map(String::length)</span><br><span class="line">         .collect(toList());</span><br></pre></td></tr></table></figure>
+<p>你可以定制更加复杂的查询，比如“交易中最大值的id”或者“计算交易金额总和”。这种处理需要使用reduce操作，reduce可以将一个操作应用到每个元素上，知道输出结果。reduce也经常被叫做折叠操作，因为你可以看到这种操作像把一个长的纸张（你的stream）不停地折叠直到想成一个小方格，这就是折叠操作。</p>
+<p>看一下一个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> x : numbers) &#123;</span><br><span class="line">    sum += x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>列表中的每个元素使用加号都迭代地进行了结合，从而产生了结果。我们本质上是“reduce”了集合中的数据，最终编程了一个数。上面的代码有两个参数：初始值和结合list中元素的操作符“+”</p>
+<p>当使用stream的reduce方法时，我们可以使用下面的代码将集合中的数字元素加起来。reduce方法有两个参数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> sum = numbers.stream().reduce(<span class="number">0</span>, (a, b) -&gt; a + b);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>初始值 这里是0。</li>
+<li>一个将连个数相加返回一个新值的BinaryOperator<t></t></li>
+</ul>
+<p>reduce方法本质上抽象了重复的模式。其他查询比如“计算产品”或者“计算最大值”是reduce方法的常规使用场景。</p>
+<h1 id="数值型Stream"><a href="#数值型Stream" class="headerlink" title="数值型Stream"></a>数值型Stream</h1><p>你已经看到了你可以使用reduce方法来计算一个integer的stream了。然而，我们却执行了很多次的开箱操作去重复地把一个Integer对象添加到另一个上。如果我们调用sum方法岂不是很好？像下面代码那样，这样代码的意图也更加明确。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> statement = </span><br><span class="line">    transactions.stream()</span><br><span class="line">                .map(Transaction::getValue)</span><br><span class="line">                .sum(); <span class="comment">// 这里是会报错的</span></span><br></pre></td></tr></table></figure>
+<p>在Java 8 中引入了三种原始的特定数值型stream接口来解决这个问题，它们是IntStream, DoubleStream, 和 LongStream。它们各自可以数值型stream变成一个int、double、long。</p>
+<p>常规的用法是使用mapToInt, mapToDouble, and mapToLong将stream转化成一个数值型的stream，我们可以将上面代码改成下面代码。当然你可以使用通用stream类型取代数值型stream，然后使用开箱操作。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> statementSum =</span><br><span class="line">    transactions.stream()</span><br><span class="line">                .mapToInt(Transaction::getValue)</span><br><span class="line">                .sum(); <span class="comment">// 可以正确运行</span></span><br></pre></td></tr></table></figure></p>
+<p> 数值类型的stream的另一个用途就是获取一个区间的数。比如你可能想要生成1到100之前的所有数。Java 8在IntStream, DoubleStream, 和 LongStream 中引入了两个静态方法来帮助生成一个区间，它们是range 和 rangeClosed.</p>
+<p>这两个方法以区间开始的数为第一个参数，以区间结束的数为第二个参数。但是range的区间是开区间的，rangeClosed是闭区间的。下面是一个使用rangeClosed返回10到30之间的奇数的stream。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">IntStream oddNumbers =</span><br><span class="line">    IntStream.rangeClosed(<span class="number">10</span>, <span class="number">30</span>)</span><br><span class="line">             .filter(n -&gt; n % <span class="number">2</span> == <span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+<h1 id="创建Stream"><a href="#创建Stream" class="headerlink" title="创建Stream"></a>创建Stream</h1><p>有几种方式可以创建stream。你已经知道了可以从一个集合中获取一个stream，还你使用过数字类型的stream。你可以使用数值、数组或者文件创建一个stream。另外，你甚至可以使用一个函数生成一个无穷尽的stream。</p>
+<p>通过数值或者数组创建stream可以很直接：对于数值是要使用静态方法Stream .of，对于数组使用静态方法Arrays.stream ，像下面代码这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Stream&lt;Integer&gt; numbersFromValues = Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>);</span><br><span class="line"><span class="keyword">int</span>[] numbers = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>&#125;;</span><br><span class="line">IntStream numbersFromArray = Arrays.stream(numbers);</span><br></pre></td></tr></table></figure>
+<p>你可以使用Files.lines静态方法将一个文件转化为一个stream。比如，下面代码计算一个文件的行数。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">long</span> numberOfLines =</span><br><span class="line">    Files.lines(Paths.get(“yourFile.txt”), Charset.defaultCharset())</span><br><span class="line">         .count();</span><br></pre></td></tr></table></figure>
+<h2 id="无穷stream"><a href="#无穷stream" class="headerlink" title="无穷stream"></a>无穷stream</h2><p>到现在为止你知道了stream元素是根据需求产生的。有两个静态方法Stream.iterate和Stream .generate可以让你从从一个函数中创建一个strea，因为元素是根据需求计出来的，这两个方法可以一直产生元素。这也是我们叫无穷stream的原因：stream没有一个固定的大小，但是它和从固定大小的集合中创建的stream是一样的。</p>
+<p>下面代码是一个使用iterate创建了包含一个10的倍数的stream。iterate的第一个参数是初始值，第二个至是用于产生每个元素的lambda表达式（类型是UnaryOperator<t>）。</t></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Stream&lt;Integer&gt; numbers = Stream.iterate(<span class="number">0</span>, n -&gt; n + <span class="number">10</span>);</span><br></pre></td></tr></table></figure>
+<p>我们可以使用limit操作将一个无穷的stream转化为一个大小固定的stream，比如像下面这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">numbers.limit(<span class="number">5</span>).forEach(System.out::println); <span class="comment">// 0, 10, 20, 30, 40</span></span><br></pre></td></tr></table></figure>
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p>Java 8引入了Stream API，这可以让你实现复杂的数据查询处理。在这片文章中，我们已经看到了stream支持很多操作，比如filter、mpa，reduce和iterate，这些操作可以方便我们写简洁的代码和实现复杂的数据处理查询。这和Java 8之前使用的集合有很大的不同。Stream有很多好处。首先,Stream API使用了注入懒加载和短贿赂的技术优化了数据处理查询。第二，stream可以自动地并行运行，充分使用多核架构。在下一篇文章中，我们将谭树更多高级操作，比如flatMap和collect。请持续关注。</p>
+</section>
+    <!-- Tags START -->
+    
+      <div class="tags">
+        <span>Tags:</span>
+        
+  <a href="/tags#java8" >
+    <span class="tag-code">java8</span>
+  </a>
+
+      </div>
+    
+    <!-- Tags END -->
+    <!-- 打赏 START -->
+    
+      <div class="money-like">
+        <div class="reward-btn">
+          赏
+          <span class="money-code">
+            <span class="alipay-code">
+              <div class="code-image"></div>
+              <b>使用支付宝打赏</b>
+            </span>
+            <span class="wechat-code">
+              <div class="code-image"></div>
+              <b>使用微信打赏</b>
+            </span>
+          </span>
+        </div>
+        <p class="notice">若你觉得我的文章对你有帮助，欢迎点击上方按钮对我打赏</p>
+      </div>
+    
+    <!-- 打赏 END -->
+    <!-- 二维码 START -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#开始使用Stream"><span class="toc-nav-text"><a href="#&#x5F00;&#x59CB;&#x4F7F;&#x7528;Stream" class="headerlink" title="&#x5F00;&#x59CB;&#x4F7F;&#x7528;Stream"></a>&#x5F00;&#x59CB;&#x4F7F;&#x7528;Stream</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#Stream-VS-集合"><span class="toc-nav-text"><a href="#Stream-VS-&#x96C6;&#x5408;" class="headerlink" title="Stream VS  &#x96C6;&#x5408;"></a>Stream VS  &#x96C6;&#x5408;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#使用Stream处理数据"><span class="toc-nav-text"><a href="#&#x4F7F;&#x7528;Stream&#x5904;&#x7406;&#x6570;&#x636E;" class="headerlink" title="&#x4F7F;&#x7528;Stream&#x5904;&#x7406;&#x6570;&#x636E;"></a>&#x4F7F;&#x7528;Stream&#x5904;&#x7406;&#x6570;&#x636E;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#数值型Stream"><span class="toc-nav-text"><a href="#&#x6570;&#x503C;&#x578B;Stream" class="headerlink" title="&#x6570;&#x503C;&#x578B;Stream"></a>&#x6570;&#x503C;&#x578B;Stream</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#创建Stream"><span class="toc-nav-text"><a href="#&#x521B;&#x5EFA;Stream" class="headerlink" title="&#x521B;&#x5EFA;Stream"></a>&#x521B;&#x5EFA;Stream</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#无穷stream"><span class="toc-nav-text"><a href="#&#x65E0;&#x7A77;stream" class="headerlink" title="&#x65E0;&#x7A77;stream"></a>&#x65E0;&#x7A77;stream</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#结论"><span class="toc-nav-text"><a href="#&#x7ED3;&#x8BBA;" class="headerlink" title="&#x7ED3;&#x8BBA;"></a>&#x7ED3;&#x8BBA;</span></a></li></ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2018/01/14/java8-stream-1/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "liuyatao";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "java8-stream-1",
+        owner: "liuyatao",
+        repo: "liuyatao.github.io",
+        oauth: {
+          client_id: "5e7862dc374c56896bad",
+          client_secret: "940291ee10a2e5d917e6bd4a978f7611f99a4f07"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2018 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
+    <br>
+    Theme by <a href="https://github.com/yanm1ng">yanm1ng</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>
